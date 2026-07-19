@@ -1,0 +1,6 @@
+{
+  "name": "PromptShield Graph",
+  "description": "A dynamic dashboard visualizing cross-agent prompt injection detection and blocking in multi-agent AI pipelines.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
