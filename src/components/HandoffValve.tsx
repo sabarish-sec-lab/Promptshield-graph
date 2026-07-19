@@ -91,7 +91,7 @@ export default function HandoffValve({
         } ${styles.bgColor} ${styles.glowColor}`}
       >
         <span className="text-[9px] font-mono tracking-wider text-slate-500 mb-1">
-          {id === "handoff_a_b" ? "A → B GUARD" : "B → C GUARD"}
+          {id === "handoff_a_b" ? "A → B GUARD" : id === "handoff_a_d" ? "A → D GUARD" : "BD → C GUARD"}
         </span>
         <div className="flex items-center gap-1.5">
           {styles.icon}

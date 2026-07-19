@@ -65,6 +65,7 @@ export default function AgentNode({ id, name, role, status, input, output }: Age
   const getAgentLabel = () => {
     if (id === "agent_a") return "AGENT A";
     if (id === "agent_b") return "AGENT B";
+    if (id === "agent_d") return "AGENT D";
     return "AGENT C";
   };
 

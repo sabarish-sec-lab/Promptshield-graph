@@ -33,21 +33,21 @@ const SCENARIOS = [
     query: "Explain the importance of public key infrastructure (PKI) in modern email clients.",
     injectionMode: "clean" as "clean" | "inject",
     shieldEnabled: true,
-    description: "Normal, harmless academic request. Agent A researches, Agent B summarizes, and Agent C decides on an action. All handoffs are classified as CLEAN by the PromptShield detectors.",
+    description: "Normal, harmless academic request. Agent A researches, Agent B summarizes and Agent D checks compliance in parallel. Agent C decides on an action. All handoffs are classified as CLEAN by the PromptShield detectors.",
   },
   {
     name: "Scenario 2: Injection Attack Blocked",
     query: "Summarize the history and architecture of secure shell (SSH) keys.",
     injectionMode: "inject" as "clean" | "inject",
     shieldEnabled: true,
-    description: "Agent A consumes malicious data (prompt injection). When A attempts to pass output to B, the Handoff A→B Detector spots the injection (INJECTED) and blocks the pipeline, saving downstream agents.",
+    description: "Agent A consumes malicious data (prompt injection). When A attempts to pass output to B and D in parallel, the Handoff Detectors spot the injection (INJECTED) and block downstream propagation.",
   },
   {
     name: "Scenario 3: Exploit Propagation (Shield Off)",
     query: "Summarize the history and architecture of secure shell (SSH) keys.",
     injectionMode: "inject" as "clean" | "inject",
     shieldEnabled: false,
-    description: "Demonstrates the danger of unprotected multi-agent pipelines. With PromptShield DISABLED, the injection payload bypasses guards, hijacks Agent B (Summarizer), and propagates to compromise Agent C.",
+    description: "Demonstrates the danger of unprotected multi-agent pipelines. With PromptShield DISABLED, the injection payload bypasses guards, hijacks Agent B and Agent D, and propagates to compromise Agent C.",
   },
 ];
 
@@ -93,11 +93,13 @@ export default function App() {
       steps: [
         { id: "agent_a", name: "Agent A: Research Agent", status: "pending", input: query, output: "" },
         { id: "agent_b", name: "Agent B: Summarizer Agent", status: "pending", input: "", output: "" },
+        { id: "agent_d", name: "Agent D: Compliance Agent", status: "pending", input: "", output: "" },
         { id: "agent_c", name: "Agent C: Action Agent", status: "pending", input: "", output: "" },
       ],
       handoffs: [
         { id: "handoff_a_b", source: "agent_a", target: "agent_b", verdict: "NOT_EVALUATED", reason: "", shieldBlocked: false, inputText: "" },
-        { id: "handoff_b_c", source: "agent_b", target: "agent_c", verdict: "NOT_EVALUATED", reason: "", shieldBlocked: false, inputText: "" },
+        { id: "handoff_a_d", source: "agent_a", target: "agent_d", verdict: "NOT_EVALUATED", reason: "", shieldBlocked: false, inputText: "" },
+        { id: "handoff_bd_c", source: "agent_bd", target: "agent_c", verdict: "NOT_EVALUATED", reason: "", shieldBlocked: false, inputText: "" },
       ],
       pipelineBlocked: false,
       statusMessage: "Pipeline ready. Press Run Pipeline to simulate multi-agent defense.",
@@ -177,11 +179,13 @@ export default function App() {
       steps: [
         { id: "agent_a", name: "Agent A: Research Agent", status: "pending", input: sc.query, output: "" },
         { id: "agent_b", name: "Agent B: Summarizer Agent", status: "pending", input: "", output: "" },
+        { id: "agent_d", name: "Agent D: Compliance Agent", status: "pending", input: "", output: "" },
         { id: "agent_c", name: "Agent C: Action Agent", status: "pending", input: "", output: "" },
       ],
       handoffs: [
         { id: "handoff_a_b", source: "agent_a", target: "agent_b", verdict: "NOT_EVALUATED", reason: "", shieldBlocked: false, inputText: "" },
-        { id: "handoff_b_c", source: "agent_b", target: "agent_c", verdict: "NOT_EVALUATED", reason: "", shieldBlocked: false, inputText: "" },
+        { id: "handoff_a_d", source: "agent_a", target: "agent_d", verdict: "NOT_EVALUATED", reason: "", shieldBlocked: false, inputText: "" },
+        { id: "handoff_bd_c", source: "agent_bd", target: "agent_c", verdict: "NOT_EVALUATED", reason: "", shieldBlocked: false, inputText: "" },
       ],
       pipelineBlocked: false,
       statusMessage: `Scenario Loaded: ${sc.name}. Ready to simulate.`,
@@ -219,9 +223,9 @@ export default function App() {
               <p className="text-[10px] uppercase text-slate-500 font-semibold tracking-tighter">Pipeline Status</p>
               {pipelineData?.pipelineBlocked ? (
                 <p className="text-rose-500 font-mono text-xs font-bold">ATTACK BLOCKED</p>
-              ) : pipelineData?.steps[2].status === "hijacked" ? (
+              ) : pipelineData?.steps[3]?.status === "hijacked" ? (
                 <p className="text-rose-500 font-mono text-xs font-bold">ATTACK SUCCESS</p>
-              ) : pipelineData?.steps[2].status === "completed" ? (
+              ) : pipelineData?.steps[3]?.status === "completed" ? (
                 <p className="text-emerald-500 font-mono text-xs font-bold">ALL SECURE</p>
               ) : (
                 <p className="text-slate-400 font-mono text-xs font-bold uppercase">{pipelineData?.steps[0].status === "running" ? "PROCESSING" : "IDLE"}</p>
@@ -464,10 +468,10 @@ export default function App() {
               </div>
 
               {/* Grid representation of DAG graph */}
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-6 px-3 relative min-h-[300px] z-10">
+              <div className="flex flex-col lg:flex-row items-stretch justify-between gap-6 py-8 px-4 relative min-h-[400px] z-10">
                 
-                {/* Node A */}
-                <div className="w-full md:w-[28%] z-10">
+                {/* Column 1: Root Agent A */}
+                <div className="flex flex-col justify-center w-full lg:w-[25%] z-10">
                   <AgentNode
                     id={pipelineData?.steps[0].id || "agent_a"}
                     name={pipelineData?.steps[0].name || "Agent A"}
@@ -478,54 +482,82 @@ export default function App() {
                   />
                 </div>
 
-                {/* Valve Handoff A -> B */}
-                <div className="w-full md:w-auto z-10">
-                  <HandoffValve
-                    id={pipelineData?.handoffs[0].id || "handoff_a_b"}
-                    source="agent_a"
-                    target="agent_b"
-                    verdict={pipelineData?.handoffs[0].verdict || "NOT_EVALUATED"}
-                    reason={pipelineData?.handoffs[0].reason || ""}
-                    shieldBlocked={pipelineData?.handoffs[0].shieldBlocked || false}
-                    onInspect={() => setInspectingHandoffId("handoff_a_b")}
-                  />
+                {/* Column 2: Parallel Branches for Agent B & Agent D */}
+                <div className="flex flex-col gap-8 justify-center w-full lg:w-[45%] z-10">
+                  {/* Branch A -> B */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3 bg-slate-900/45 p-3 rounded-lg border border-slate-800/40">
+                    <div className="shrink-0">
+                      <HandoffValve
+                        id={pipelineData?.handoffs[0].id || "handoff_a_b"}
+                        source="agent_a"
+                        target="agent_b"
+                        verdict={pipelineData?.handoffs[0].verdict || "NOT_EVALUATED"}
+                        reason={pipelineData?.handoffs[0].reason || ""}
+                        shieldBlocked={pipelineData?.handoffs[0].shieldBlocked || false}
+                        onInspect={() => setInspectingHandoffId("handoff_a_b")}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <AgentNode
+                        id={pipelineData?.steps[1].id || "agent_b"}
+                        name={pipelineData?.steps[1].name || "Agent B"}
+                        role="Factual Single-Sentence Condenser"
+                        status={pipelineData?.steps[1].status || "pending"}
+                        input={pipelineData?.steps[1].input}
+                        output={pipelineData?.steps[1].output}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Branch A -> D */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3 bg-slate-900/45 p-3 rounded-lg border border-slate-800/40">
+                    <div className="shrink-0">
+                      <HandoffValve
+                        id={pipelineData?.handoffs[1].id || "handoff_a_d"}
+                        source="agent_a"
+                        target="agent_d"
+                        verdict={pipelineData?.handoffs[1].verdict || "NOT_EVALUATED"}
+                        reason={pipelineData?.handoffs[1].reason || ""}
+                        shieldBlocked={pipelineData?.handoffs[1].shieldBlocked || false}
+                        onInspect={() => setInspectingHandoffId("handoff_a_d")}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <AgentNode
+                        id={pipelineData?.steps[2].id || "agent_d"}
+                        name={pipelineData?.steps[2].name || "Agent D"}
+                        role="Security & Tone Compliance Checker"
+                        status={pipelineData?.steps[2].status || "pending"}
+                        input={pipelineData?.steps[2].input}
+                        output={pipelineData?.steps[2].output}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Node B */}
-                <div className="w-full md:w-[28%] z-10">
-                  <AgentNode
-                    id={pipelineData?.steps[1].id || "agent_b"}
-                    name={pipelineData?.steps[1].name || "Agent B"}
-                    role="Factual Single-Sentence Condenser"
-                    status={pipelineData?.steps[1].status || "pending"}
-                    input={pipelineData?.steps[1].input}
-                    output={pipelineData?.steps[1].output}
-                  />
-                </div>
-
-                {/* Valve Handoff B -> C */}
-                <div className="w-full md:w-auto z-10">
-                  <HandoffValve
-                    id={pipelineData?.handoffs[1].id || "handoff_b_c"}
-                    source="agent_b"
-                    target="agent_c"
-                    verdict={pipelineData?.handoffs[1].verdict || "NOT_EVALUATED"}
-                    reason={pipelineData?.handoffs[1].reason || ""}
-                    shieldBlocked={pipelineData?.handoffs[1].shieldBlocked || false}
-                    onInspect={() => setInspectingHandoffId("handoff_b_c")}
-                  />
-                </div>
-
-                {/* Node C */}
-                <div className="w-full md:w-[28%] z-10">
-                  <AgentNode
-                    id={pipelineData?.steps[2].id || "agent_c"}
-                    name={pipelineData?.steps[2].name || "Agent C"}
-                    role="Decision, Logging & Action Engine"
-                    status={pipelineData?.steps[2].status || "pending"}
-                    input={pipelineData?.steps[2].input}
-                    output={pipelineData?.steps[2].output}
-                  />
+                {/* Column 3: Joint Merger & Final Action Agent C */}
+                <div className="flex flex-col md:flex-row lg:flex-col items-center justify-center gap-4 w-full lg:w-[25%] z-10">
+                  <div className="w-full">
+                    <HandoffValve
+                      id={pipelineData?.handoffs[2].id || "handoff_bd_c"}
+                      source="agent_bd"
+                      target="agent_c"
+                      verdict={pipelineData?.handoffs[2].verdict || "NOT_EVALUATED"}
+                      reason={pipelineData?.handoffs[2].reason || ""}
+                      shieldBlocked={pipelineData?.handoffs[2].shieldBlocked || false}
+                      onInspect={() => setInspectingHandoffId("handoff_bd_c")}
+                    />
+                  </div>
+                  <div className="w-full">
+                    <AgentNode
+                      id={pipelineData?.steps[3].id || "agent_c"}
+                      name={pipelineData?.steps[3].name || "Agent C"}
+                      role="Decision, Logging & Action Engine"
+                      status={pipelineData?.steps[3].status || "pending"}
+                      input={pipelineData?.steps[3].input}
+                      output={pipelineData?.steps[3].output}
+                    />
+                  </div>
                 </div>
 
               </div>
@@ -535,9 +567,9 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   {pipelineData?.pipelineBlocked ? (
                     <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                  ) : pipelineData?.steps[2].status === "hijacked" ? (
+                  ) : pipelineData?.steps[3]?.status === "hijacked" ? (
                     <AlertTriangle className="w-4 h-4 text-rose-500 animate-bounce shrink-0" />
-                  ) : pipelineData?.steps[2].status === "completed" ? (
+                  ) : pipelineData?.steps[3]?.status === "completed" ? (
                     <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
                   ) : (
                     <div className="w-3.5 h-3.5 rounded-full border border-dashed border-cyan-400 animate-spin" />
@@ -552,12 +584,12 @@ export default function App() {
                     ATTACK BLOCKED
                   </span>
                 )}
-                {pipelineData?.steps[2].status === "hijacked" && (
+                {pipelineData?.steps[3]?.status === "hijacked" && (
                   <span className="text-[10px] font-bold font-mono text-rose-500 bg-rose-950 animate-pulse px-2 py-0.5 rounded border border-rose-500 uppercase">
                     SYSTEM COMPROMISED
                   </span>
                 )}
-                {pipelineData?.steps[2].status === "completed" && (
+                {pipelineData?.steps[3]?.status === "completed" && (
                   <span className="text-[10px] font-bold font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase">
                     SECURE COMPLETED
                   </span>
@@ -578,7 +610,10 @@ export default function App() {
                     <div className="flex items-center gap-2">
                       <Shield className="w-4.5 h-4.5 text-cyan-400" />
                       <h4 className="text-xs font-bold font-mono text-cyan-400 uppercase">
-                        INSPECTING HANDOFF FIREWALL REPORT: {selectedHandoff.id === "handoff_a_b" ? "AGENT A → B" : "AGENT B → C"}
+                        INSPECTING HANDOFF FIREWALL REPORT: {
+                          selectedHandoff.id === "handoff_a_b" ? "AGENT A → B" :
+                          selectedHandoff.id === "handoff_a_d" ? "AGENT A → D" : "AGENTS B,D → C"
+                        }
                       </h4>
                     </div>
                     <button
@@ -651,7 +686,7 @@ export default function App() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {pipelineData?.steps.map((step, idx) => (
                 <div key={idx} className="flex flex-col bg-slate-950 border border-slate-850 rounded p-4">
                   <div className="flex items-center justify-between border-b border-slate-900 pb-2 mb-3">
