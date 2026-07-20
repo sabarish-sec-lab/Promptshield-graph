@@ -67,7 +67,7 @@ export default function HandoffValve({
   const styles = getVerdictStyles();
 
   return (
-    <div className="flex flex-col items-center justify-center py-4 md:py-0 px-2 min-w-[120px] md:min-w-[170px] h-full relative group">
+    <div className="flex flex-col items-center justify-center py-4 md:py-0 px-2 min-w-[110px] sm:min-w-[130px] h-full relative group">
       {/* Visual connector line (hidden on mobile, shown on desktop) */}
       <div className="hidden md:block absolute left-0 right-0 top-[38px] h-[2px] z-0">
         <svg className="w-full h-[6px] overflow-visible">

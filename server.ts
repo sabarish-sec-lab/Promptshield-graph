@@ -215,7 +215,7 @@ Text to analyze:
     // --- STEP 3: Handle Toggles & Branch Execution ---
     // INTENTIONAL DEMO TOGGLE COMMENT:
     // This is an intentional fail-open / fail-closed demo toggle.
-    // When shieldEnabled is false, the PromptShield layer is completely bypassed (fail-open)
+    // When shieldEnabled is false, the TaintGraph layer is completely bypassed (fail-open)
     // allowing suspicious or injected payloads to propagate to downstream agents
     // for educational/demonstration purposes of multi-agent cascading compromise.
     // When shieldEnabled is true, any SUSPICIOUS or INJECTED verdict blocks further propagation (fail-closed).
@@ -228,7 +228,7 @@ Text to analyze:
       handoffs[0].shieldBlocked = true;
       pipelineBlocked = true;
       steps[1].status = "blocked";
-      steps[1].output = "[Blocked by PromptShield Defense Layer]";
+      steps[1].output = "[Blocked by TaintGraph Firewall Layer]";
       pipelineStatusMessage = `Attack blocked at [Agent A → Agent B]! Injection attempt detected.`;
     } else {
       handoffs[0].shieldBlocked = false;
@@ -265,7 +265,7 @@ Text to analyze:
       handoffs[1].shieldBlocked = true;
       pipelineBlocked = true;
       steps[2].status = "blocked";
-      steps[2].output = "[Blocked by PromptShield Defense Layer]";
+      steps[2].output = "[Blocked by TaintGraph Firewall Layer]";
       pipelineStatusMessage = `Attack blocked at [Agent A → Agent D]! Injection attempt detected.`;
     } else {
       handoffs[1].shieldBlocked = false;
@@ -301,7 +301,7 @@ Text to analyze:
     // Agent C is blocked if either upstream handoff was flagged/blocked, or if any agent failed to execute cleanly.
     if (pipelineBlocked) {
       steps[3].status = "blocked";
-      steps[3].output = "[Blocked by PromptShield Defense Layer due to upstream block/failure]";
+      steps[3].output = "[Blocked by TaintGraph Firewall Layer due to upstream block/failure]";
     } else {
       // Merge outputs from Agent B and Agent D
       const textToEvaluateBDC = `[Summarizer Summary]: ${steps[1].output}\n[Compliance Validation]: ${steps[2].output}`;
@@ -357,7 +357,7 @@ Text to analyze:
 
       // INTENTIONAL DEMO TOGGLE COMMENT:
       // This is an intentional fail-open / fail-closed demo toggle.
-      // When shieldEnabled is false, the PromptShield layer is completely bypassed
+      // When shieldEnabled is false, the TaintGraph layer is completely bypassed
       // allowing suspicious or injected payloads to propagate to downstream agents
       // for educational/demonstration purposes of multi-agent cascading compromise.
       const blockBDC = shieldEnabled && (verdictBDC === "INJECTED" || verdictBDC === "SUSPICIOUS");
@@ -366,7 +366,7 @@ Text to analyze:
         handoffs[2].shieldBlocked = true;
         pipelineBlocked = true;
         steps[3].status = "blocked";
-        steps[3].output = "[Blocked by PromptShield Defense Layer]";
+        steps[3].output = "[Blocked by TaintGraph Firewall Layer]";
         pipelineStatusMessage = `Attack blocked at [Agents B,D → Agent C]! Hijacked output detected.`;
       } else {
         handoffs[2].shieldBlocked = false;

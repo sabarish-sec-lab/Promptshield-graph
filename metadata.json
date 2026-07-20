@@ -1,6 +1,6 @@
 {
-  "name": "PromptShield Graph",
-  "description": "A dynamic dashboard visualizing cross-agent prompt injection detection and blocking in multi-agent AI pipelines.",
+  "name": "TaintGraph",
+  "description": "A Graph-Based Cross-Agent Prompt Injection Firewall for Multi-Agent AI Pipelines",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -33,7 +33,7 @@ const SCENARIOS = [
     query: "Explain the importance of public key infrastructure (PKI) in modern email clients.",
     injectionMode: "clean" as "clean" | "inject",
     shieldEnabled: true,
-    description: "Normal, harmless academic request. Agent A researches, Agent B summarizes and Agent D checks compliance in parallel. Agent C decides on an action. All handoffs are classified as CLEAN by the PromptShield detectors.",
+    description: "Normal, harmless academic request. Agent A researches, Agent B summarizes and Agent D checks compliance in parallel. Agent C decides on an action. All handoffs are classified as CLEAN by the TaintGraph detectors.",
   },
   {
     name: "Scenario 2: Injection Attack Blocked",
@@ -47,7 +47,7 @@ const SCENARIOS = [
     query: "Summarize the history and architecture of secure shell (SSH) keys.",
     injectionMode: "inject" as "clean" | "inject",
     shieldEnabled: false,
-    description: "Demonstrates the danger of unprotected multi-agent pipelines. With PromptShield DISABLED, the injection payload bypasses guards, hijacks Agent B and Agent D, and propagates to compromise Agent C.",
+    description: "Demonstrates the danger of unprotected multi-agent pipelines. With TaintGraph DISABLED, the injection payload bypasses guards, hijacks Agent B and Agent D, and propagates to compromise Agent C.",
   },
 ];
 
@@ -207,13 +207,13 @@ export default function App() {
         {/* Header Section */}
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 mb-8 border-b border-slate-800 bg-slate-900/50 p-6 rounded-lg gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-cyan-500 rounded-sm flex items-center justify-center font-bold text-slate-950 font-display">P</div>
+            <div className="w-8 h-8 bg-cyan-500 rounded-sm flex items-center justify-center font-bold text-slate-950 font-display">T</div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-white uppercase font-display">
-                PromptShield <span className="text-cyan-400">Graph</span>
+                Taint<span className="text-cyan-400">Graph</span>
               </h1>
               <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
-                PRIDE Research Innovation Hub
+                Graph-Based Multi-Agent Injection Firewall
               </p>
             </div>
           </div>
@@ -243,8 +243,8 @@ export default function App() {
           <Info className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
           <div className="text-xs text-slate-300 leading-relaxed">
             <span className="font-bold text-slate-100 uppercase">Project Concept:</span> Multi-agent pipelines are highly vulnerable to 
-            <span className="text-rose-400 font-semibold"> cascading prompt injections</span>. An instruction override hidden inside Agent A's output becomes Agent B's untrusted input. 
-            <strong> PromptShield Graph</strong> acts as an inline firewall (Handoff Valve) evaluating and sanitizing outputs between nodes 
+            <span className="text-rose-400 font-semibold"> cascading prompt injections</span>. An instruction override hidden inside Agent A's output becomes downstream Agent B's and Agent D's untrusted input. 
+            <strong> TaintGraph</strong> acts as an inline graph-based firewall (Handoff Valve) evaluating, checking, and sanitizing outputs between nodes 
             to block rogue payloads from hijacking downstream logic.
           </div>
         </div>
@@ -253,7 +253,7 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 items-start">
           
           {/* LEFT: Config, Scenario Preset List & Custom Query */}
-          <section className="lg:col-span-5 space-y-6">
+          <section className="lg:col-span-4 space-y-6">
             
             {/* Scenarios Header */}
             <div className="border border-slate-800 rounded-lg p-5 bg-slate-900/50 shadow-xl">
@@ -356,7 +356,7 @@ export default function App() {
                 <div className="bg-slate-950 rounded p-3 border border-slate-850 flex flex-col justify-between">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400">
-                      PromptShield Layer
+                      TaintGraph Layer
                     </span>
                     <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
                       shieldEnabled ? "bg-cyan-500/10 text-cyan-400" : "bg-slate-500/10 text-slate-400"
@@ -445,7 +445,7 @@ export default function App() {
           </section>
 
           {/* RIGHT: Live Pipeline Graph & Status Visualizer */}
-          <section className="lg:col-span-7 space-y-6">
+          <section className="lg:col-span-8 space-y-6">
             
             {/* Visualizer Panel */}
             <div className="border border-slate-800 rounded-lg p-6 bg-slate-900/50 shadow-2xl relative overflow-hidden">
@@ -468,10 +468,10 @@ export default function App() {
               </div>
 
               {/* Grid representation of DAG graph */}
-              <div className="flex flex-col lg:flex-row items-stretch justify-between gap-6 py-8 px-4 relative min-h-[400px] z-10">
+              <div className="flex flex-col xl:flex-row items-stretch justify-between gap-6 py-8 px-4 relative min-h-[400px] z-10">
                 
                 {/* Column 1: Root Agent A */}
-                <div className="flex flex-col justify-center w-full lg:w-[25%] z-10">
+                <div className="flex flex-col justify-center w-full xl:w-[25%] z-10">
                   <AgentNode
                     id={pipelineData?.steps[0].id || "agent_a"}
                     name={pipelineData?.steps[0].name || "Agent A"}
@@ -483,7 +483,7 @@ export default function App() {
                 </div>
 
                 {/* Column 2: Parallel Branches for Agent B & Agent D */}
-                <div className="flex flex-col gap-8 justify-center w-full lg:w-[45%] z-10">
+                <div className="flex flex-col gap-8 justify-center w-full xl:w-[45%] z-10">
                   {/* Branch A -> B */}
                   <div className="flex flex-col sm:flex-row items-center gap-3 bg-slate-900/45 p-3 rounded-lg border border-slate-800/40">
                     <div className="shrink-0">
@@ -536,7 +536,7 @@ export default function App() {
                 </div>
 
                 {/* Column 3: Joint Merger & Final Action Agent C */}
-                <div className="flex flex-col md:flex-row lg:flex-col items-center justify-center gap-4 w-full lg:w-[25%] z-10">
+                <div className="flex flex-col md:flex-row xl:flex-col items-center justify-center gap-4 w-full xl:w-[25%] z-10">
                   <div className="w-full">
                     <HandoffValve
                       id={pipelineData?.handoffs[2].id || "handoff_bd_c"}
@@ -731,7 +731,7 @@ export default function App() {
         {/* Footer Section */}
         <footer className="mt-auto border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-slate-500 pb-4">
           <div className="text-center sm:text-left">
-            <p className="font-mono uppercase text-slate-400">PRIDE-SHIELD Core Academic Demo Prototype</p>
+            <p className="font-mono uppercase text-slate-400">TaintGraph Firewall Academic Demo Prototype</p>
             <p className="mt-0.5">© 2026 Panimalar Research Innovation Development Ecosystem. All Rights Reserved.</p>
           </div>
           <div className="flex items-center gap-4">
